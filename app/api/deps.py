@@ -2,13 +2,19 @@ from fastapi import Depends, Header, HTTPException, status
 from redis import Redis
 from rq import Queue
 
+from app.api.docs import API_KEY_HELP
 from app.core.config import Settings, get_settings
-from app.storage.local import LocalStorage
 from app.storage.base import Storage
+from app.storage.local import LocalStorage
 
 
 def require_api_key(
-    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    x_api_key: str | None = Header(
+        default=None,
+        alias="X-API-Key",
+        description=API_KEY_HELP,
+        examples=["dev-api-key"],
+    ),
     settings: Settings = Depends(get_settings),
 ) -> None:
     if not x_api_key or x_api_key not in settings.api_key_set:

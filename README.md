@@ -72,3 +72,7 @@ curl -H "X-API-Key: dev-api-key" \
 - Docker 镜像内安装 LibreOffice、Pandoc、wkhtmltopdf，用于高保真转换。
 - 本地无系统转换工具时，`md_to_word` 和 `md_to_pdf` 会使用纯 Python fallback。
 - `pdf_to_word` 是尽力转换，扫描版 PDF 需要后续接入 OCR 扩展。
+
+## 启动命令
+ -- bash
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000

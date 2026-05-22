@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from fastapi.responses import FileResponse
 from rq import Queue
 from rq.job import Job, JobStatus
 
 from app.api.deps import get_queue, get_storage, require_api_key
+from app.api.docs import COMMON_ERROR_RESPONSES
 from app.schemas.jobs import JobInfo
 from app.storage.base import Storage
 
@@ -35,8 +36,18 @@ def _status(job: Job) -> str:
     return status_text
 
 
-@router.get("/{job_id}", response_model=JobInfo)
-def get_job(job_id: str, queue: Queue = Depends(get_queue)) -> JobInfo:
+@router.get(
+    "/{job_id}",
+    response_model=JobInfo,
+    summary="查询异步任务状态",
+    description="根据 `job_id` 查询异步任务状态。状态值包括 `queued`、`running`、`succeeded`、`failed`。",
+    response_description="任务状态、工具名、执行结果或错误信息。",
+    responses={401: COMMON_ERROR_RESPONSES[401], 404: COMMON_ERROR_RESPONSES[404]},
+)
+def get_job(
+    job_id: str = Path(..., description="异步任务 ID，来自 `POST /v1/tools/{tool_name}/jobs` 的返回值。"),
+    queue: Queue = Depends(get_queue),
+) -> JobInfo:
     job = _fetch_job(queue, job_id)
     result = job.result if isinstance(job.result, dict) else None
     return JobInfo(
@@ -48,9 +59,25 @@ def get_job(job_id: str, queue: Queue = Depends(get_queue)) -> JobInfo:
     )
 
 
-@router.get("/{job_id}/result")
+@router.get(
+    "/{job_id}/result",
+    summary="获取异步任务结果",
+    description=(
+        "任务成功后获取结果。文件类工具会直接返回文件流；文本或 JSON 类工具会返回 JSON。"
+        "如果任务还未成功，会返回 `409 job_not_succeeded`。"
+    ),
+    response_description="文件下载流或 JSON 结果。",
+    responses={
+        401: COMMON_ERROR_RESPONSES[401],
+        404: COMMON_ERROR_RESPONSES[404],
+        409: {
+            "description": "任务尚未成功完成。",
+            "content": {"application/json": {"example": {"detail": {"code": "job_not_succeeded"}}}},
+        },
+    },
+)
 def get_job_result(
-    job_id: str,
+    job_id: str = Path(..., description="异步任务 ID，来自 `POST /v1/tools/{tool_name}/jobs` 的返回值。"),
     queue: Queue = Depends(get_queue),
     storage: Storage = Depends(get_storage),
 ):

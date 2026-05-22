@@ -14,7 +14,23 @@ from app.tools.utils import detect_content_type, require_field
 class TextExtractTool(BaseTool):
     name = "text_extract"
     description = "Extract text from TXT, Markdown, PDF, or DOCX files."
-    input_schema = {"type": "object", "required": ["file_id"], "properties": {"file_id": {"type": "string"}}}
+    input_schema = {
+        "type": "object",
+        "required": ["file_id"],
+        "properties": {
+            "file_id": {
+                "type": "string",
+                "description": "要提取文本的文件 ID。支持 .txt, .md, .json, .yaml, .html, .pdf, .docx。",
+                "examples": ["a1b2c3.pdf"],
+            },
+            "encoding": {
+                "type": "string",
+                "description": "文本类文件读取编码。",
+                "default": "utf-8",
+                "examples": ["utf-8"],
+            },
+        },
+    }
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:
         file_id = require_field(input_data, "file_id")
@@ -36,7 +52,17 @@ class TextExtractTool(BaseTool):
 class FileMetadataTool(BaseTool):
     name = "file_metadata"
     description = "Return stored file metadata."
-    input_schema = {"type": "object", "required": ["file_id"], "properties": {"file_id": {"type": "string"}}}
+    input_schema = {
+        "type": "object",
+        "required": ["file_id"],
+        "properties": {
+            "file_id": {
+                "type": "string",
+                "description": "要查询元信息的文件 ID。",
+                "examples": ["a1b2c3.md"],
+            }
+        },
+    }
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:
         meta = storage.get(require_field(input_data, "file_id")).copy()
@@ -51,7 +77,20 @@ class ArchiveCreateTool(BaseTool):
     input_schema = {
         "type": "object",
         "required": ["file_ids"],
-        "properties": {"file_ids": {"type": "array", "items": {"type": "string"}}, "output_filename": {"type": "string"}},
+        "properties": {
+            "file_ids": {
+                "type": "array",
+                "description": "要打包进 ZIP 的文件 ID 列表。",
+                "items": {"type": "string"},
+                "examples": [["a1.txt", "b2.pdf"]],
+            },
+            "output_filename": {
+                "type": "string",
+                "description": "输出 ZIP 文件名。",
+                "default": "archive.zip",
+                "examples": ["result.zip"],
+            },
+        },
     }
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:
@@ -72,7 +111,17 @@ class ArchiveCreateTool(BaseTool):
 class ArchiveExtractTool(BaseTool):
     name = "archive_extract"
     description = "Extract a ZIP archive and return extracted files."
-    input_schema = {"type": "object", "required": ["file_id"], "properties": {"file_id": {"type": "string"}}}
+    input_schema = {
+        "type": "object",
+        "required": ["file_id"],
+        "properties": {
+            "file_id": {
+                "type": "string",
+                "description": "要解压的 ZIP 文件 ID，只支持 .zip。",
+                "examples": ["a1b2c3.zip"],
+            }
+        },
+    }
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:
         path = storage.path_for(require_field(input_data, "file_id"))
@@ -97,7 +146,20 @@ class ImagesToPdfTool(BaseTool):
     input_schema = {
         "type": "object",
         "required": ["file_ids"],
-        "properties": {"file_ids": {"type": "array", "items": {"type": "string"}}, "output_filename": {"type": "string"}},
+        "properties": {
+            "file_ids": {
+                "type": "array",
+                "description": "要合并为 PDF 的图片文件 ID 列表。建议使用 png/jpg/jpeg。",
+                "items": {"type": "string"},
+                "examples": [["a1.png", "b2.jpg"]],
+            },
+            "output_filename": {
+                "type": "string",
+                "description": "输出 PDF 文件名。",
+                "default": "images.pdf",
+                "examples": ["images.pdf"],
+            },
+        },
     }
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:

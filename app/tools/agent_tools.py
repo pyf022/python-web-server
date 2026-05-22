@@ -16,7 +16,17 @@ from app.tools.utils import command_exists, require_field, run_command
 class WebpageToMarkdownTool(BaseTool):
     name = "webpage_to_markdown"
     description = "Fetch a web page and convert readable HTML to Markdown."
-    input_schema = {"type": "object", "required": ["url"], "properties": {"url": {"type": "string"}}}
+    input_schema = {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+            "url": {
+                "type": "string",
+                "description": "要抓取并转换为 Markdown 的网页 URL。",
+                "examples": ["https://example.com/article"],
+            }
+        },
+    }
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:
         url = require_field(input_data, "url")
@@ -39,9 +49,13 @@ class UrlScreenshotTool(BaseTool):
         "type": "object",
         "required": ["url"],
         "properties": {
-            "url": {"type": "string"},
-            "width": {"type": "integer", "default": 1280},
-            "height": {"type": "integer", "default": 720},
+            "url": {
+                "type": "string",
+                "description": "要截图的网页 URL。当前工具需要 worker 镜像安装 Playwright 浏览器依赖后才能启用。",
+                "examples": ["https://example.com"],
+            },
+            "width": {"type": "integer", "description": "截图宽度，单位像素。", "default": 1280, "examples": [1280]},
+            "height": {"type": "integer", "description": "截图高度，单位像素。", "default": 720, "examples": [720]},
         },
     }
     sync_supported = False
@@ -60,9 +74,22 @@ class HtmlToPdfTool(BaseTool):
     input_schema = {
         "type": "object",
         "properties": {
-            "html_text": {"type": "string"},
-            "file_id": {"type": "string"},
-            "output_filename": {"type": "string", "default": "document.pdf"},
+            "html_text": {
+                "type": "string",
+                "description": "HTML 文本。`html_text` 和 `file_id` 二选一。",
+                "examples": ["<h1>Hello</h1>"],
+            },
+            "file_id": {
+                "type": "string",
+                "description": "已上传的 HTML 文件 ID。`html_text` 和 `file_id` 二选一。",
+                "examples": ["a1b2c3.html"],
+            },
+            "output_filename": {
+                "type": "string",
+                "description": "输出 PDF 文件名。",
+                "default": "document.pdf",
+                "examples": ["page.pdf"],
+            },
         },
     }
 
@@ -93,9 +120,19 @@ class JsonYamlFormatTool(BaseTool):
         "type": "object",
         "required": ["text", "format"],
         "properties": {
-            "text": {"type": "string"},
-            "format": {"type": "string", "enum": ["json", "yaml"]},
-            "sort_keys": {"type": "boolean", "default": True},
+            "text": {"type": "string", "description": "要校验和格式化的 JSON 或 YAML 文本。", "examples": ['{"b":1,"a":2}']},
+            "format": {
+                "type": "string",
+                "description": "输入文本格式。",
+                "enum": ["json", "yaml"],
+                "examples": ["json"],
+            },
+            "sort_keys": {
+                "type": "boolean",
+                "description": "是否按 key 排序输出。",
+                "default": True,
+                "examples": [True],
+            },
         },
     }
 

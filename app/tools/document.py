@@ -15,7 +15,17 @@ from app.tools.utils import command_exists, require_field, run_command
 class WordToPdfTool(BaseTool):
     name = "word_to_pdf"
     description = "Convert DOC/DOCX files to PDF with LibreOffice headless."
-    input_schema = {"type": "object", "required": ["file_id"], "properties": {"file_id": {"type": "string"}}}
+    input_schema = {
+        "type": "object",
+        "required": ["file_id"],
+        "properties": {
+            "file_id": {
+                "type": "string",
+                "description": "已上传的 Word 文件 ID，只支持 .doc 或 .docx。",
+                "examples": ["a1b2c3.docx"],
+            }
+        },
+    }
     timeout_seconds = 600
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:
@@ -40,7 +50,17 @@ class WordToPdfTool(BaseTool):
 class PdfToWordTool(BaseTool):
     name = "pdf_to_word"
     description = "Best-effort PDF to DOCX conversion. Scanned PDFs require a future OCR extension."
-    input_schema = {"type": "object", "required": ["file_id"], "properties": {"file_id": {"type": "string"}}}
+    input_schema = {
+        "type": "object",
+        "required": ["file_id"],
+        "properties": {
+            "file_id": {
+                "type": "string",
+                "description": "已上传的 PDF 文件 ID，只支持 .pdf。扫描版 PDF 属于尽力转换。",
+                "examples": ["a1b2c3.pdf"],
+            }
+        },
+    }
     timeout_seconds = 600
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:
@@ -66,9 +86,22 @@ class MarkdownToWordTool(BaseTool):
     input_schema = {
         "type": "object",
         "properties": {
-            "markdown_text": {"type": "string"},
-            "file_id": {"type": "string"},
-            "output_filename": {"type": "string", "default": "document.docx"},
+            "markdown_text": {
+                "type": "string",
+                "description": "Markdown 文本。`markdown_text` 和 `file_id` 二选一。",
+                "examples": ["# Title\n\nHello"],
+            },
+            "file_id": {
+                "type": "string",
+                "description": "已上传的 Markdown 文件 ID。`markdown_text` 和 `file_id` 二选一。",
+                "examples": ["a1b2c3.md"],
+            },
+            "output_filename": {
+                "type": "string",
+                "description": "输出 Word 文件名。",
+                "default": "document.docx",
+                "examples": ["result.docx"],
+            },
         },
     }
 
@@ -93,9 +126,22 @@ class MarkdownToPdfTool(BaseTool):
     input_schema = {
         "type": "object",
         "properties": {
-            "markdown_text": {"type": "string"},
-            "file_id": {"type": "string"},
-            "output_filename": {"type": "string", "default": "document.pdf"},
+            "markdown_text": {
+                "type": "string",
+                "description": "Markdown 文本。`markdown_text` 和 `file_id` 二选一。",
+                "examples": ["# Title\n\nHello"],
+            },
+            "file_id": {
+                "type": "string",
+                "description": "已上传的 Markdown 文件 ID。`markdown_text` 和 `file_id` 二选一。",
+                "examples": ["a1b2c3.md"],
+            },
+            "output_filename": {
+                "type": "string",
+                "description": "输出 PDF 文件名。",
+                "default": "document.pdf",
+                "examples": ["result.pdf"],
+            },
         },
     }
 
