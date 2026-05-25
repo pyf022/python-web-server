@@ -50,7 +50,7 @@ def run_tool(
     try:
         result = tool.execute(request.input, storage)
     except ToolExecutionError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=exc.to_detail()) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=exc.to_detail()) from exc
 
     return ToolInvokeResponse(status="succeeded", result=result.to_response())
 

@@ -56,11 +56,11 @@ async def convert_and_download(
     try:
         result = tool.execute(input_data, storage)
     except ToolExecutionError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=exc.to_detail()) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=exc.to_detail()) from exc
 
     if result.type != "file" or not result.result_file_id:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail={"code": "tool_did_not_return_file", "message": "The selected tool did not return a downloadable file."},
         )
 
@@ -79,12 +79,12 @@ def _parse_extra_input(extra_input: str | None) -> dict[str, Any]:
         parsed = json.loads(extra_input)
     except json.JSONDecodeError as exc:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail={"code": "invalid_extra_input", "message": "extra_input must be a valid JSON object."},
         ) from exc
     if not isinstance(parsed, dict):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail={"code": "invalid_extra_input", "message": "extra_input must be a JSON object."},
         )
     return parsed

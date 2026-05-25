@@ -317,6 +317,23 @@ output_filename = result.docx
 extra_input = {"encoding":"utf-8"}
 ```
 
+### 4.10 一步上传解析或 OCR
+
+```text
+POST /v1/process/run
+```
+
+用途：
+
+- 上传一个文件并直接执行返回文本或 JSON 的工具。
+- 适合 `document_parse`、`image_ocr`、`pdf_ocr`、`image_annotate_layout`。
+
+参数：
+
+- `file`：需要处理的文件。
+- `tool_name`：例如 `document_parse` 或 `pdf_ocr`。
+- `extra_input`：可选 JSON 字符串，例如 `{"language":"chi_sim+eng"}`。
+
 ## 5. 模块说明
 
 ### 5.1 API 模块
@@ -424,8 +441,42 @@ data/tmp       临时转换目录
 | 工具名 | 功能 |
 | --- | --- |
 | `webpage_to_markdown` | 网页内容转 Markdown |
+| `webpage_to_html` | 获取网页 HTML，可选清理脚本和样式 |
+| `http_request` | 发送 GET/POST/PUT/PATCH/DELETE HTTP 请求 |
 | `json_yaml_format` | JSON/YAML 校验和格式化 |
-| `url_screenshot` | URL 截图接口已预留，需要补 Playwright 依赖后启用 |
+| `url_screenshot` | 使用 Playwright Chromium 生成网页截图 |
+
+### 7.4 知识库与 OCR 工具
+
+| 工具名 | 功能 | 说明 |
+| --- | --- | --- |
+| `word_to_md` | DOCX 转 Markdown 文件 | 可用于知识库导入 |
+| `pdf_to_md` | PDF 提取并生成 Markdown 文件 | 文本型 PDF 效果最佳 |
+| `document_parse` | 通用文档解析 | 支持 PDF、DOCX、XLSX、PPTX、HTML、TXT、Markdown |
+| `pdf_parse` | PDF 知识解析 | `document_parse` 的 PDF 专用入口 |
+| `word_parse` | Word 知识解析 | `document_parse` 的 DOCX 专用入口 |
+| `excel_parse` | Excel 知识解析 | 按工作表返回内容 |
+| `ppt_parse` | PPT 知识解析 | 按幻灯片返回内容 |
+| `html_parse` | HTML 知识解析 | 转换为 Markdown 内容 |
+| `txt_parse` | TXT 知识解析 | 返回文本章节 |
+| `md_parse` | Markdown 知识解析 | 返回 Markdown 章节 |
+| `img_parse` | 图片知识解析 | 基于 OCR 返回文本 |
+| `image_ocr` | 图片 OCR | 依赖本机 Tesseract |
+| `pdf_ocr` | PDF 页面 OCR | 依赖 Tesseract 和 PyMuPDF |
+| `image_annotate_layout` | 图片文字框识别与标注 | 返回标注图片及文本框数据 |
+| `chunks_data_parse` | 文本切片 | 支持 chunk size 和 overlap |
+| `bm25_preprocess` | BM25 检索预处理 | 返回规范化文本和 tokens |
+
+### 7.5 外部集成工具
+
+| 工具名 | 功能 | 说明 |
+| --- | --- | --- |
+| `send_email_smtp` | SMTP 邮件发送 | 调用时传入 SMTP 配置，可携带已有文件附件 |
+| `jira_search_issues` | Jira JQL 查询 | 支持 basic token 或 bearer token |
+| `jira_get_issue` | 获取 Jira 任务详情 | 传入 issue key |
+| `jira_create_issue` | 创建 Jira 任务 | 传入 Jira REST fields |
+| `jira_transition_issue` | Jira 状态流转 | 传入 transition id |
+| `jira_add_attachment` | 上传 Jira 附件 | 使用本服务中已上传的 file_id |
 
 ## 8. 认证与安全
 
@@ -568,19 +619,20 @@ return ToolResult(type="text", data={"text": "..."} )
 
 后续可以按以下方向继续扩展：
 
-- OCR：支持扫描版 PDF、图片文字识别。
+- OCR 增强：PaddleOCR/VL、表格和版面恢复、模型服务化。
 - PDF 工具：PDF 合并、拆分、加水印、压缩、提取图片。
 - Office 工具：Excel 转 PDF、PPT 转 PDF、Word 内容替换。
 - 对象存储：接入 MinIO、S3、OSS。
 - 权限体系：从 API Key 扩展到多租户、配额、调用审计。
 - 任务管理：任务取消、重试、进度百分比、任务过期清理。
-- Agent 工具集：网页截图、网页爬取、HTML 清洗、结构化提取。
+- Agent 工具集：结构化网页提取、浏览器自动化会话、反爬配置。
 - 管理后台：查看工具列表、任务记录、文件记录、失败日志。
 
 ## 14. 当前边界
 
 - `word_to_pdf` 依赖 LibreOffice。
-- `url_screenshot` 当前只是预留工具，未完整启用浏览器依赖。
+- `url_screenshot` 需要安装 Playwright Chromium：`playwright install chromium`。
+- OCR 类工具需要 Windows 本地安装 Tesseract OCR 并配置 PATH。
 - `pdf_to_word` 是尽力转换，扫描版 PDF 不保证可用。
 - 当前认证是 API Key，不包含用户体系和角色权限。
 - 当前默认本地文件存储，多实例部署时建议扩展对象存储。

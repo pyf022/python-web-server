@@ -44,27 +44,53 @@ class WebpageToMarkdownTool(BaseTool):
 
 class UrlScreenshotTool(BaseTool):
     name = "url_screenshot"
-    description = "Capture a URL screenshot. Requires Playwright/browser dependencies if enabled."
+    description = "Capture a URL screenshot using Playwright Chromium."
     input_schema = {
         "type": "object",
         "required": ["url"],
         "properties": {
             "url": {
                 "type": "string",
-                "description": "要截图的网页 URL。当前工具需要 worker 镜像安装 Playwright 浏览器依赖后才能启用。",
+                "description": "要截图的网页 URL。需要执行 `playwright install chromium` 安装浏览器。",
                 "examples": ["https://example.com"],
             },
             "width": {"type": "integer", "description": "截图宽度，单位像素。", "default": 1280, "examples": [1280]},
             "height": {"type": "integer", "description": "截图高度，单位像素。", "default": 720, "examples": [720]},
         },
     }
-    sync_supported = False
     timeout_seconds = 120
 
     def execute(self, input_data: dict, storage: Storage) -> ToolResult:
-        raise ToolExecutionError(
-            "not_configured",
-            "URL screenshots require installing Playwright browser dependencies in the worker image.",
+        url = require_field(input_data, "url")
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError as exc:
+            raise ToolExecutionError("missing_dependency", "Playwright is required for URL screenshots.") from exc
+        output = storage.make_temp_dir() / "screenshot.png"
+        try:
+            with sync_playwright() as playwright:
+                browser = playwright.chromium.launch(headless=True)
+                page = browser.new_page(
+                    viewport={
+                        "width": int(input_data.get("width", 1280)),
+                        "height": int(input_data.get("height", 720)),
+                    }
+                )
+                page.goto(url, wait_until="networkidle", timeout=self.timeout_seconds * 1000)
+                page.screenshot(path=str(output), full_page=bool(input_data.get("full_page", True)))
+                browser.close()
+        except Exception as exc:
+            raise ToolExecutionError(
+                "screenshot_failed",
+                "URL screenshot failed. Verify Chromium is installed with Playwright.",
+                {"error": str(exc)},
+            ) from exc
+        stored = storage.save_path(output, input_data.get("output_filename") or "screenshot.png", "image/png")
+        return ToolResult(
+            type="file",
+            result_file_id=stored["file_id"],
+            filename=stored["filename"],
+            content_type=stored["content_type"],
         )
 
 

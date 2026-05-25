@@ -55,23 +55,33 @@ curl -H "X-API-Key: dev-api-key" \
 
 - `word_to_pdf`
 - `pdf_to_word`
+- `word_to_md`
+- `pdf_to_md`
 - `md_to_word`
 - `md_to_pdf`
+- `document_parse` / `pdf_parse` / `word_parse` / `excel_parse` / `ppt_parse`
+- `image_ocr` / `pdf_ocr` / `image_annotate_layout`
+- `chunks_data_parse` / `bm25_preprocess`
 - `text_extract`
 - `file_metadata`
 - `archive_create`
 - `archive_extract`
 - `images_to_pdf`
 - `webpage_to_markdown`
+- `webpage_to_html`
+- `http_request`
 - `url_screenshot`
 - `html_to_pdf`
 - `json_yaml_format`
+- `send_email_smtp`
+- `jira_search_issues` / `jira_get_issue` / `jira_create_issue` / `jira_transition_issue` / `jira_add_attachment`
 
 ## Notes
 
-- Docker 镜像内安装 LibreOffice、Pandoc、wkhtmltopdf，用于高保真转换。
+- Docker 镜像内安装 LibreOffice、Pandoc、wkhtmltopdf、Tesseract 和 Playwright Chromium。
 - 本地无系统转换工具时，`md_to_word` 和 `md_to_pdf` 会使用纯 Python fallback。
-- `pdf_to_word` 是尽力转换，扫描版 PDF 需要后续接入 OCR 扩展。
+- `pdf_to_word` 是尽力转换；扫描版 PDF 可使用 `pdf_ocr` 提取文字。
+- Windows 本地运行 OCR 需安装 Tesseract；网页截图需执行 `playwright install chromium`。
 
 ## 启动命令
  -- bash

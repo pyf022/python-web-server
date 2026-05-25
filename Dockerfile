@@ -9,12 +9,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wkhtmltopdf \
     fonts-noto-cjk \
     poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-chi-sim \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY pyproject.toml README.md ./
 RUN pip install --no-cache-dir -e .
+RUN python -m playwright install --with-deps chromium
 
 COPY app ./app
 
